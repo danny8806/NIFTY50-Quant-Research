@@ -13,8 +13,12 @@ data/processed/
 # Generated sub-reports (keep top-level reports)
 reports/stock_reports/
 reports/strategy_reports/
-reports/benchmark_reports/
-reports/portfolio_reports/
+reports/benchmark_reports/*
+!reports/benchmark_reports/benchmark_comparison.txt
+!reports/benchmark_reports/benchmark_comparison.csv
+reports/portfolio_reports/*
+!reports/portfolio_reports/comprehensive_results.txt
+!reports/portfolio_reports/portfolio_summary.txt
 
 # Backtest chart HTML files
 images/

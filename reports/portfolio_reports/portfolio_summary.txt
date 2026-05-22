@@ -1,0 +1,22 @@
+Portfolio Summary (Equal Weight - 3 Stocks)
+==================================================
+
+EMA Strategy Portfolio:
+  Avg Return: 407.14%
+  Avg CAGR: 4.48%
+  Avg Sharpe: 0.1761
+
+RSI Strategy Portfolio:
+  Avg Return: 571.91%
+  Avg CAGR: 4.41%
+  Avg Sharpe: 0.1819
+
+MACD Strategy Portfolio:
+  Avg Return: 650.15%
+  Avg CAGR: 5.51%
+  Avg Sharpe: 0.2419
+
+BOLLINGER Strategy Portfolio:
+  Avg Return: 520.00%
+  Avg CAGR: 4.37%
+  Avg Sharpe: 0.1671
