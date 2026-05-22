@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
+.env
+.DS_Store
+
+# Data files (large)
+data/raw/
+data/benchmark/
+data/processed/
+
+# Generated sub-reports (keep top-level reports)
+reports/stock_reports/
+reports/strategy_reports/
+reports/benchmark_reports/
+reports/portfolio_reports/
+
+# Backtest chart HTML files
+images/

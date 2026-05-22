@@ -1,0 +1,23 @@
+
+STOCKS = [
+    "RELIANCE.NS",
+    "TCS.NS",
+    "INFY.NS",
+    "HDFCBANK.NS",
+    "ICICIBANK.NS",
+    "SBIN.NS",
+    "BHARTIARTL.NS",
+    "HINDUNILVR.NS",
+    "ITC.NS",
+    "LT.NS",
+    "AXISBANK.NS",
+    "KOTAKBANK.NS",
+    "ASIANPAINT.NS",
+    "MARUTI.NS",
+    "SUNPHARMA.NS"
+]
+
+BENCHMARK = "^NSEI"
+
+START_DATE = "2000-01-01"
+END_DATE = "2026-12-31"
