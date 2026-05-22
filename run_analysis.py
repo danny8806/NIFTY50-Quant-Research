@@ -7,6 +7,8 @@ from strategies.rsi_strategy import RSIStrategy
 from strategies.macd_strategy import MACDStrategy
 from strategies.bollinger_strategy import BollingerStrategy
 
+COMMON_START = "2007-09-17"
+
 stocks = ["RELIANCE.NS", "TCS.NS", "INFY.NS"]
 
 strategies = {
@@ -21,6 +23,7 @@ results = {}
 for stock in stocks:
     results[stock] = {}
     df = load_data(f"data/raw/{stock}.csv")
+    df = df[df.index >= COMMON_START]
     for name, strategy in strategies.items():
         bt = Backtest(df, strategy, cash=100000, commission=0.002)
         stats = bt.run()

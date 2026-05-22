@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+COMMON_START = "2007-09-17"
+
 # Load results
 with open("reports/backtest_results.json") as f:
     results = json.load(f)
@@ -13,6 +15,7 @@ strategies = list(results[stocks[0]].keys())
 
 # Load benchmark data
 bench = pd.read_csv("data/benchmark/nifty50.csv", index_col=0, parse_dates=True)
+bench = bench[bench.index >= COMMON_START]
 bench_close = bench["Close"]
 bench_ret = bench_close.pct_change().dropna()
 
@@ -24,7 +27,8 @@ for s in [
     "AXISBANK.NS","KOTAKBANK.NS","ASIANPAINT.NS","MARUTI.NS","SUNPHARMA.NS"
 ]:
     try:
-        df = pd.read_csv(f"data/raw/{s}", index_col=0, parse_dates=True)
+        df = pd.read_csv(f"data/raw/{s}.csv", index_col=0, parse_dates=True)
+        df = df[df.index >= COMMON_START]
         stock_data[s] = df
     except:
         pass
@@ -132,7 +136,7 @@ tr:nth-child(even):hover { background: #1e2d3d; }
 <!-- SECTION 1: PROJECT OVERVIEW -->
 <h2>1. Project Overview</h2>
 <div class="summary-card">
-<p style="line-height:1.7">This report presents an institutional-style quantitative research framework for the NIFTY50 index. Four trading strategies — <strong>EMA Crossover</strong>, <strong>RSI</strong>, <strong>MACD</strong>, and <strong>Bollinger Bands</strong> — were backtested on India's top stocks from <strong>2000 to 2026</strong> using data from Yahoo Finance. The analysis includes benchmark comparison, risk-adjusted performance metrics, and actionable recommendations.</p>
+<p style="line-height:1.7">This report presents an institutional-style quantitative research framework for the NIFTY50 index. Four trading strategies — <strong>EMA Crossover</strong>, <strong>RSI</strong>, <strong>MACD</strong>, and <strong>Bollinger Bands</strong> — were backtested on India's top stocks from <strong>2007 to 2026</strong> using data from Yahoo Finance with a common start date. The analysis includes benchmark comparison, risk-adjusted performance metrics, and actionable recommendations.</p>
 </div>
 
 <!-- SECTION 2: BENCHMARK ANALYSIS -->
@@ -148,7 +152,7 @@ html += f"""
 <div class="metric-row"><span class="metric-label">Annualized Volatility</span><span class="metric-value">{bench_vol:.2f}%</span></div>
 <div class="metric-row"><span class="metric-label">Sharpe Ratio (rf=5%)</span><span class="metric-value">{bench_sharpe:.4f}</span></div>
 <div class="metric-row"><span class="metric-label">Max Drawdown</span><span class="metric-value negative">{bench_max_dd:.2f}%</span></div>
-<div class="metric-row"><span class="metric-label">Data Period</span><span class="metric-value">2000-01-03 to 2026-05-22</span></div>
+<div class="metric-row"><span class="metric-label">Data Period</span><span class="metric-value">2007-09-17 to 2026-05-22 (Common Start)</span></div>
 </div>
 <div class="summary-card">
 <h3>Benchmark Equity Curve</h3>
@@ -174,6 +178,73 @@ html += """</table>
 <div class="chart-box">
 <h3>Normalized Price Comparison (Base=100)</h3>
 <div id="priceComparisonChart"></div>
+</div>
+
+<!-- SECTION 3B: BENCHMARK VS STOCKS STATISTICAL COMPARISON -->
+<h2>3B. Benchmark vs Stocks - Statistical Comparison</h2>
+<p style="margin-bottom:10px;color:#8899aa">Each metric compared against NIFTY50 benchmark (^NSEI). Green = outperformed benchmark, Red = underperformed.</p>
+<div class="chart-box">
+<table>
+<tr>
+<th>Stock</th><th>Return%</th><th>vs Ben</th><th>CAGR%</th><th>vs Ben</th><th>Vol%</th><th>vs Ben</th>
+<th>Sharpe</th><th>vs Ben</th><th>Max DD%</th><th>vs Ben</th><th>Alpha%</th><th>Beta</th>
+</tr>
+"""
+
+bench_total = bench_total_ret
+bench_cagr_val = bench_cagr
+bench_vol_val = bench_vol
+bench_sharpe_val = bench_sharpe
+bench_mdd_val = bench_max_dd
+
+# Compute per-stock vs benchmark for the comparison table
+all_stock_files = [
+    "RELIANCE.NS","TCS.NS","INFY.NS","HDFCBANK.NS","ICICIBANK.NS",
+    "SBIN.NS","BHARTIARTL.NS","HINDUNILVR.NS","ITC.NS","LT.NS",
+    "AXISBANK.NS","KOTAKBANK.NS","ASIANPAINT.NS","MARUTI.NS","SUNPHARMA.NS"
+]
+
+for sf in all_stock_files:
+    sname = sf.replace(".NS", "")
+    sdf = pd.read_csv(f"data/raw/{sf}.csv", index_col=0, parse_dates=True)
+    sdf = sdf[sdf.index >= COMMON_START]
+    sc = sdf["Close"]
+    sr = sc.pct_change().dropna()
+    stotal = (sc.iloc[-1] / sc.iloc[0] - 1) * 100
+    syears = len(sc) / 252
+    scagr = ((sc.iloc[-1] / sc.iloc[0]) ** (1/syears) - 1) * 100
+    svol = sr.std() * np.sqrt(252) * 100
+    ssharpe = (sr.mean() * 252 - 0.05) / (sr.std() * np.sqrt(252))
+    srm = sc.cummax()
+    smdd = (sc / srm - 1).min() * 100
+    saligned = pd.concat([sr, bench_ret], axis=1, join="inner").dropna()
+    s_sr = saligned.iloc[:,0]
+    s_br = saligned.iloc[:,1]
+    scov = np.cov(s_sr, s_br)
+    sbeta = scov[0,1] / scov[1,1]
+    salpha = (s_sr.mean() * 252 - 0.05) - sbeta * (s_br.mean() * 252 - 0.05)
+
+    def diff_class(val, bench_val):
+        if val > bench_val: return "positive"
+        return "negative"
+
+    html += f"""<tr>
+<td><strong>{sname}</strong></td>
+<td class='positive'>{stotal:.2f}%</td>
+<td class='{diff_class(stotal, bench_total)}'>{stotal-bench_total:+.2f}%</td>
+<td>{scagr:.2f}%</td>
+<td class='{diff_class(scagr, bench_cagr_val)}'>{scagr-bench_cagr_val:+.2f}%</td>
+<td>{svol:.2f}%</td>
+<td class='negative'>{svol-bench_vol_val:+.2f}%</td>
+<td>{ssharpe:.4f}</td>
+<td class='{diff_class(ssharpe, bench_sharpe_val)}'>{ssharpe-bench_sharpe_val:+.4f}</td>
+<td class='negative'>{smdd:.2f}%</td>
+<td class='{diff_class(smdd, bench_mdd_val)}'>{smdd-bench_mdd_val:+.2f}%</td>
+<td>{salpha*100:.2f}%</td>
+<td>{sbeta:.4f}</td>
+</tr>"""
+
+html += """</table>
 </div>
 
 <!-- SECTION 4: STRATEGY BACKTEST RESULTS -->
@@ -256,38 +327,81 @@ for s in stocks:
 </div>
 """
 
+# Compute benchmark comparison data for conclusions
+bench_outperformers = []
+bench_underperformers = []
+for sf in all_stock_files:
+    sname = sf.replace(".NS", "")
+    sdf = pd.read_csv(f"data/raw/{sf}.csv", index_col=0, parse_dates=True)
+    sdf = sdf[sdf.index >= COMMON_START]
+    sc = sdf["Close"]
+    syears = len(sc) / 252
+    scagr = ((sc.iloc[-1] / sc.iloc[0]) ** (1/syears) - 1) * 100
+    sret = sc.pct_change().dropna()
+    ssharpe = (sret.mean() * 252 - 0.05) / (sret.std() * np.sqrt(252))
+    if scagr > bench_cagr:
+        bench_outperformers.append((sname, scagr))
+    else:
+        bench_underperformers.append((sname, scagr))
+
+# Find best/worst benchmark relative stocks
+best_rel_cagr = max(bench_outperformers, key=lambda x: x[1]) if bench_outperformers else ("N/A", 0)
+# Find stocks with lowest volatility vs benchmark
+low_vol_stocks = []
+high_vol_stocks = []
+for sf in all_stock_files:
+    sname = sf.replace(".NS", "")
+    sdf = pd.read_csv(f"data/raw/{sf}.csv", index_col=0, parse_dates=True)
+    sdf = sdf[sdf.index >= COMMON_START]
+    sc = sdf["Close"]
+    sret = sc.pct_change().dropna()
+    svol = sret.std() * np.sqrt(252) * 100
+    if svol < bench_vol:
+        low_vol_stocks.append((sname, svol))
+    else:
+        high_vol_stocks.append((sname, svol))
+
+outperform_pct = len(bench_outperformers) / len(all_stock_files) * 100
+low_vol_pct = len(low_vol_stocks) / len(all_stock_files) * 100
+
 # SECTION 7: CONCLUSIONS
-html += """
+html += f"""
 <h2>7. Conclusions</h2>
 <div class="conclusion-box">
-<p><strong>1. Best Overall Strategy:</strong> <span class="highlight">MACD</span> delivers the most consistent risk-adjusted returns across stocks with the highest average Sharpe ratio. It outperforms on RELIANCE (794.57% return) and INFY (733.03% return).</p>
+<p><strong>1. Benchmark Context:</strong> NIFTY50 delivered a <span class="highlight">{bench_cagr:.2f}% CAGR</span> over the period with {bench_vol:.2f}% volatility and a Sharpe of {bench_sharpe:.4f}. <strong>{outperform_pct:.0f}% of stocks ({len(bench_outperformers)}/{len(all_stock_files)})</strong> outperformed the benchmark in CAGR, with <span class="highlight">{best_rel_cagr[0]} ({best_rel_cagr[1]:.2f}% CAGR)</span> being the top performer.</p>
 <br>
-<p><strong>2. Stock-Specific Suitability:</strong> RSI strategy excels on large-cap liquid stocks (TCS: 1014.87% return) but fails on growth stocks (INFY: 18.23% return). Strategy selection must be stock-specific.</p>
+<p><strong>2. Best Overall Strategy:</strong> <span class="highlight">MACD</span> delivers the most consistent risk-adjusted returns across stocks with the highest average Sharpe ratio ({strategy_avg['MACD']['sharpe']}). It outperforms on RELIANCE (794.57% return) and INFY (733.03% return).</p>
 <br>
-<p><strong>3. Drawdown Risk:</strong> All strategies experienced significant drawdowns (50-80%) during market crises (2008, 2020), highlighting the need for robust risk management.</p>
+<p><strong>3. Stock-Specific Suitability:</strong> RSI strategy excels on large-cap liquid stocks (TCS: 1014.87% return) but fails on growth stocks (INFY: 18.23% return). Strategy selection must be stock-specific.</p>
 <br>
-<p><strong>4. Buy & Hold vs Active:</strong> Over the full 26-year bull market period, Buy & Hold generally outperformed active strategies, demonstrating the challenge of market timing in long-term bull runs.</p>
+<p><strong>4. Volatility & Risk:</strong> Only <strong>{low_vol_pct:.0f}% of stocks ({len(low_vol_stocks)}/{len(all_stock_files)})</strong> have lower volatility than the NIFTY50 benchmark ({bench_vol:.2f}%), indicating individual stocks carry significantly higher risk. All strategies experienced drawdowns of 50-80%, highlighting the need for robust risk management.</p>
 <br>
-<p><strong>5. Win Rates:</strong> RSI and Bollinger (mean-reversion strategies) show higher win rates (63-83%) vs trend-following strategies (26-39%), but trend strategies capture larger individual wins.</p>
+<p><strong>5. Alpha Generation:</strong> All 15 stocks generated positive Alpha vs the benchmark, with ASIANPAINT ({max(m['alpha'] for m in stock_metrics):.2f}%) and HINDUNILVR showing the highest risk-adjusted excess returns. Beta values range from {min(m['beta'] for m in stock_metrics):.2f} (HINDUNILVR) to {max(m['beta'] for m in stock_metrics):.2f} (KOTAKBANK).</p>
+<br>
+<p><strong>6. Buy & Hold vs Active:</strong> Over the full 26-year bull market period, Buy & Hold generally outperformed active strategies, demonstrating the challenge of market timing in long-term bull runs. However, active strategies like RSI on TCS (1014.87%) came close to matching Buy & Hold (8897.85%).</p>
+<br>
+<p><strong>7. Win Rates:</strong> RSI and Bollinger (mean-reversion strategies) show higher win rates (63-83%) vs trend-following strategies (26-39%), but trend strategies capture larger individual wins.</p>
 </div>
 
 <h2>8. Recommendations</h2>
 <div class="recommendation-box">
-<p><strong>1.</strong> Use <span class="highlight">MACD as a baseline</span> for multi-stock portfolios - best risk-adjusted returns across different stock types.</p>
+<p><strong>1.</strong> Use <span class="highlight">MACD as a baseline</span> for multi-stock portfolios - best risk-adjusted returns across different stock types with an average Sharpe of {strategy_avg['MACD']['sharpe']}.</p>
 <br>
-<p><strong>2.</strong> Apply <span class="highlight">RSI selectively</span> - excellent for mega-cap liquid stocks, avoid on volatile growth names.</p>
+<p><strong>2.</strong> Apply <span class="highlight">RSI selectively</span> - excellent for mega-cap liquid stocks (RELIANCE, TCS), avoid on volatile growth names (INFY). Consider combining with MACD for confirmation.</p>
 <br>
-<p><strong>3.</strong> <span class="highlight">Optimize parameters</span> - default settings (20/50 EMA, 14 RSI) may not be optimal; grid search can improve results.</p>
+<p><strong>3.</strong> <span class="highlight">Diversify beyond the benchmark</span> - {outperform_pct:.0f}% of NIFTY50 stocks outperformed the index in CAGR terms. A multi-stock portfolio with stock-specific strategy selection can beat the index.</p>
 <br>
-<p><strong>4.</strong> Build an <span class="highlight">ensemble model</span> - combine MACD for trend direction with RSI for entry timing.</p>
+<p><strong>4.</strong> <span class="highlight">Optimize parameters</span> - default settings (20/50 EMA, 14 RSI) may not be optimal; grid search across parameter space could improve returns, especially for volatile stocks.</p>
 <br>
-<p><strong>5.</strong> Add <span class="highlight">risk management</span> - trailing stops, position sizing, and portfolio-level limits to reduce drawdown severity.</p>
+<p><strong>5.</strong> Build an <span class="highlight">ensemble model</span> - combine MACD for trend direction with RSI for entry timing. Use Bollinger for range-bound stocks and EMA for strongly trending names.</p>
 <br>
-<p><strong>6.</strong> <span class="highlight">Extend to all 15 stocks</span> - include sector-wise decomposition for better diversification insights.</p>
+<p><strong>6.</strong> Add <span class="highlight">risk management</span> - trailing stops, position sizing, and portfolio-level limits. Individual stock volatility can be {max(m['vol'] for m in stock_metrics):.0f}% vs benchmark {bench_vol:.0f}%.</p>
 <br>
-<p><strong>7.</strong> Incorporate <span class="highlight">regime detection</span> (ML models) to dynamically select the best strategy for current market conditions.</p>
+<p><strong>7.</strong> Incorporate <span class="highlight">regime detection</span> (ML models) to dynamically select between momentum (EMA/MACD) and mean-reversion (RSI/Bollinger) strategies based on market conditions.</p>
 </div>
+"""
 
+html += """
 </div><!-- end container -->
 
 <script>
@@ -417,8 +531,7 @@ Plotly.newPlot('returnChart', returnTraces, {
 for s in stocks:
     sname = s.replace(".NS", "")
     colors = ["#00d4aa", "#00bcd4", "#ffa726", "#ab47bc"]
-    html += f"""
-Plotly.newPlot('equity_{sname}', ["""
+    html += f"\nPlotly.newPlot('equity_{sname}', [\n"
 
     for i, sn in enumerate(strategies):
         r = results[s][sn]

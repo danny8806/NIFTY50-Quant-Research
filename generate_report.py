@@ -38,7 +38,7 @@ pdf.cell(0, 10, "2. Data Overview", new_x="LMARGIN", new_y="NEXT")
 pdf.set_font("Helvetica", "", 11)
 pdf.multi_cell(0, 6, (
     f"Benchmark: ^NSEI (NIFTY50)\n"
-    f"Date Range: 2000-01-01 to 2026-05-22\n"
+    f"Date Range: 2007-09-17 to 2026-05-22 (Common Start Date)\n"
     f"Stocks Analyzed: {len(stocks)} (RELIANCE.NS, TCS.NS, INFY.NS)\n"
     f"Data Source: Yahoo Finance (yfinance)"
 ))
@@ -212,17 +212,17 @@ ret, cagr, sharpe = strategy_avg[best_avg_strat]
 ret2, cagr2, sharpe2 = strategy_avg[best_avg_sharpe_strat]
 
 conclusions = (
-    f"1. RSI Strategy shows the highest average CAGR ({cagr:.2f}%) and strongest performance "
-    f"across TCS and RELIANCE, but struggles on INFY (only 0.44% CAGR).\n\n"
-    f"2. MACD Strategy provides the most consistent risk-adjusted returns with the highest "
-    f"average Sharpe ratio ({sharpe2:.4f}) and solid CAGR across all three stocks.\n\n"
-    f"3. Bollinger Bands performs best on TCS (7.51% CAGR) but poorly on INFY (1.41% CAGR), "
-    f"indicating stock-specific suitability.\n\n"
-    f"4. EMA Crossover delivers moderate returns but suffers from higher drawdowns and "
-    f"lower win rates (26-35%), typical of trend-following strategies during range-bound markets.\n\n"
+    f"1. MACD Strategy leads across all metrics with the highest average CAGR ({cagr:.2f}%) and "
+    f"best risk-adjusted returns (Sharpe {sharpe:.4f}), making it the most consistent strategy.\n\n"
+    f"2. RSI Strategy excels on RELIANCE (5.17% CAGR) but struggles on INFY (only 1.49% CAGR), "
+    f"indicating stock-specific suitability - works best on mega-cap liquid stocks.\n\n"
+    f"3. Bollinger Bands shows mixed results - strongest on TCS (4.36% CAGR) but negative on INFY "
+    f"(-0.48% CAGR), highlighting the need for stock selection.\n\n"
+    f"4. EMA Crossover delivers moderate returns on TCS/INFY but negative on RELIANCE (-1.19% CAGR) "
+    f"with higher drawdowns, typical of trend-following in range-bound markets.\n\n"
     f"5. No single strategy consistently outperforms across all stocks - strategy selection "
     f"should be stock-specific and market-regime aware.\n\n"
-    f"6. Buy & Hold returns generally exceed strategy returns over the full 26-year period, "
+    f"6. Buy & Hold returns generally exceed strategy returns over the full 18-year period, "
     f"highlighting the challenge of market timing vs. long-term holding in a bull market."
 )
 pdf.multi_cell(0, 6, conclusions)

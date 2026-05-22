@@ -6,8 +6,15 @@ from pathlib import Path
 
 base = "."
 
+COMMON_START = "2007-09-17"
+
+def load_stock(symbol):
+    df = pd.read_csv(f"{base}/data/raw/{symbol}.csv", index_col=0, parse_dates=True)
+    return df[df.index >= COMMON_START]
+
 # Load benchmark
 bench = pd.read_csv(f"{base}/data/benchmark/nifty50.csv", index_col=0, parse_dates=True)
+bench = bench[bench.index >= COMMON_START]
 bench_close = bench["Close"]
 bench_ret = bench_close.pct_change().dropna()
 bench_total = (bench_close.iloc[-1] / bench_close.iloc[0] - 1) * 100
@@ -39,7 +46,7 @@ lines.append("=" * 90)
 lines.append("NIFTY50 BENCHMARK VS STOCKS - STATISTICAL COMPARISON REPORT")
 lines.append("=" * 90)
 lines.append(f"Benchmark: ^NSEI (NIFTY50)")
-lines.append(f"Period: 2007-09-17 to 2026-05-22 (Benchmark), 2000-01-03 to 2026-05-22 (Stocks)")
+lines.append(f"Period: 2007-09-17 to 2026-05-22 (Common Start Date)")
 lines.append(f"Risk-Free Rate: 5%")
 lines.append("")
 lines.append("-" * 90)
@@ -60,7 +67,7 @@ lines.append("=" * len(header))
 
 for sf in all_stocks:
     sname = sf.replace(".NS", "")
-    sdf = pd.read_csv(f"{base}/data/raw/{sf}.csv", index_col=0, parse_dates=True)
+    sdf = load_stock(sf)
     sc = sdf["Close"]
     sr = sc.pct_change().dropna()
     stotal = (sc.iloc[-1] / sc.iloc[0] - 1) * 100
@@ -81,14 +88,14 @@ lines.append("-" * 90)
 lines.append("KEY OBSERVATIONS")
 lines.append("-" * 90)
 
-best_cagr_stock = max(all_stocks, key=lambda s: pd.read_csv(f"{base}/data/raw/{s}.csv", index_col=0, parse_dates=True)["Close"].pipe(lambda c: ((c.iloc[-1]/c.iloc[0])**(1/(len(c)/252))-1)*100))
-best_sharpe_stock = max(all_stocks, key=lambda s: pd.read_csv(f"{base}/data/raw/{s}.csv", index_col=0, parse_dates=True)["Close"].pct_change().dropna().pipe(lambda r: (r.mean()*252-0.05)/(r.std()*np.sqrt(252))))
-worst_mdd_stock = min(all_stocks, key=lambda s: pd.read_csv(f"{base}/data/raw/{s}.csv", index_col=0, parse_dates=True)["Close"].pipe(lambda c: (c/c.cummax()-1).min()*100))
+best_cagr_stock = max(all_stocks, key=lambda s: load_stock(s)["Close"].pipe(lambda c: ((c.iloc[-1]/c.iloc[0])**(1/(len(c)/252))-1)*100))
+best_sharpe_stock = max(all_stocks, key=lambda s: load_stock(s)["Close"].pct_change().dropna().pipe(lambda r: (r.mean()*252-0.05)/(r.std()*np.sqrt(252))))
+worst_mdd_stock = min(all_stocks, key=lambda s: load_stock(s)["Close"].pipe(lambda c: (c/c.cummax()-1).min()*100))
 
 lines.append(f"  Best CAGR Stock: {best_cagr_stock.replace('.NS','')}")
 lines.append(f"  Best Sharpe Stock: {best_sharpe_stock.replace('.NS','')}")
 lines.append(f"  Worst Drawdown Stock: {worst_mdd_stock.replace('.NS','')}")
-lines.append(f"  Stocks Outperforming Benchmark (CAGR): {sum(1 for s in all_stocks if pd.read_csv(f'{base}/data/raw/{s}.csv', index_col=0, parse_dates=True)['Close'].pipe(lambda c: ((c.iloc[-1]/c.iloc[0])**(1/(len(c)/252))-1)*100) > bench_cagr)} / {len(all_stocks)}")
+lines.append(f"  Stocks Outperforming Benchmark (CAGR): {sum(1 for s in all_stocks if load_stock(s)['Close'].pipe(lambda c: ((c.iloc[-1]/c.iloc[0])**(1/(len(c)/252))-1)*100) > bench_cagr)} / {len(all_stocks)}")
 
 with open(f"{base}/reports/benchmark_reports/benchmark_comparison.txt", "w") as f:
     f.write("\n".join(lines))
@@ -198,7 +205,7 @@ print("Comprehensive results report saved: reports/portfolio_reports/comprehensi
 csv_rows = []
 for sf in all_stocks:
     sname = sf.replace(".NS", "")
-    sdf = pd.read_csv(f"{base}/data/raw/{sf}.csv", index_col=0, parse_dates=True)
+    sdf = load_stock(sf)
     sc = sdf["Close"]
     sr = sc.pct_change().dropna()
     stotal = (sc.iloc[-1] / sc.iloc[0] - 1) * 100
