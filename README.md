@@ -142,6 +142,6 @@ A new [**Global Markets vs NIFTY 50 research module**](research/global-market-ni
 - Previous S&P daily return vs next NIFTY opening gap: **+0.479** correlation (2,713 paired ordinary sessions).
 - After previous S&P gains of at least 1%: **91.2%** of NIFTY openings were higher (362 observations); only **67.4%** of NIFTY closes were higher.
 - After previous S&P losses of at least 1%: **74.6%** of NIFTY openings were lower (295 observations).
-- Includes [research charts](research/global-market-nifty-2015-2025/plots/), [reproducible code](research/global-market-nifty-2015-2025/analysis.py), [methodology](research/global-market-nifty-2015-2025/METHODOLOGY.md), [findings](research/global-market-nifty-2015-2025/RESULTS.md), and a [LinkedIn publication draft](research/global-market-nifty-2015-2025/LINKEDIN_POST.md).
+- Includes [research charts](research/global-market-nifty-2015-2025/plots/), [reproducible code](research/global-market-nifty-2015-2025/analysis.py), [methodology](research/global-market-nifty-2015-2025/METHODOLOGY.md), [findings](research/global-market-nifty-2015-2025/RESULTS.md).
 
 **Important:** retrospective descriptive study only; same-day Asian final closes are not pre-open inputs and the figures do not establish an executable trading edge. Refer to the module's caveats.
