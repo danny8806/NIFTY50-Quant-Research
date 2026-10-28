@@ -69,7 +69,6 @@ The source owner may revise their files. The checked-in SVG graphs are *frozen i
 - **RESULTS.md** — descriptive findings and hypotheses for future testing.
 - **data/snapshot_metrics.csv** — independently documented frozen summary statistics.
 - **plots/** — GitHub-embeddable SVG snapshots.
-- **LINKEDIN_POST.md** — social post draft, with sourcing and limitations.
 
 ## Main conclusion
 
