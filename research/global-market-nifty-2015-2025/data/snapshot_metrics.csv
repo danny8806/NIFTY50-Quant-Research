@@ -1,0 +1,10 @@
+metric,sample_n,value,description
+nifty_gap_up_baseline,2713,68.006,Percent ordinary matched NIFTY weekdays opening higher
+nifty_close_up_baseline,2713,53.778,Percent ordinary matched NIFTY weekdays closing higher
+sp500_vs_nifty_gap_corr,2713,0.479,Pearson correlation with prior S&P return
+sp500_vs_nifty_full_day_corr,2713,0.268,Pearson correlation with prior S&P return
+sp500_vs_nifty_intraday_corr,2713,-0.030,Pearson correlation with prior S&P return
+sp500_up1_nifty_gap_up,362,91.160,Percent NIFTY gap-up conditional on prior S&P >=1%
+sp500_up1_nifty_close_up,362,67.403,Percent NIFTY close-up conditional on prior S&P >=1%
+sp500_down1_nifty_gap_down,295,74.576,Percent NIFTY gap-down conditional on prior S&P <=-1%
+sp500_down1_nifty_close_down,295,66.780,Percent NIFTY close-down conditional on prior S&P <=-1%
